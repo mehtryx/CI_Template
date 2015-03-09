@@ -20,16 +20,16 @@ set -ex
 install_wp() {
 	mkdir -p $WP_CORE_DIR
 
+	# Needs to use svn trunk for latest, otherwise grab tar for specific version
 	if [ $WP_VERSION == 'latest' ]; then 
-		local ARCHIVE_NAME='latest'
+		svn co --quiet https://core.svn.wordpress.org/trunk/ $WP_CORE_DIR
 	else
 		local ARCHIVE_NAME="wordpress-$WP_VERSION"
+		wget -nv -O /tmp/wordpress.tar.gz http://wordpress.org/${ARCHIVE_NAME}.tar.gz
+		tar --strip-components=1 -zxmf /tmp/wordpress.tar.gz -C $WP_CORE_DIR
 	fi
 
-	wget -nv -O /tmp/wordpress.tar.gz http://wordpress.org/${ARCHIVE_NAME}.tar.gz
-	tar --strip-components=1 -zxmf /tmp/wordpress.tar.gz -C $WP_CORE_DIR
-
-	wget -nv -O $WP_CORE_DIR/wp-content/db.php https://raw.github.com/markoheijnen/wp-mysqli/master/db.php
+	cp /tmp/ci_config/db.php $WP_CORE_DIR/wp-content/db.php 
 }
 
 install_test_suite() {
@@ -53,6 +53,14 @@ install_test_suite() {
 	sed $ioption "s/yourusernamehere/$DB_USER/" wp-tests-config.php
 	sed $ioption "s/yourpasswordhere/$DB_PASS/" wp-tests-config.php
 	sed $ioption "s|localhost|${DB_HOST}|" wp-tests-config.php
+
+	# insert contents of the ci_config/phpunit.xml test config then modify the path to reflect actual test folder path
+	sed $ioption "/\<\!\-\-placeholder do not remove\-\-\>/ { 
+		h
+		r /tmp/ci_config/phpunit.xml
+		g
+		N
+		}" "$EXEC_DIR/tests/phpunit.xml"
 	sed $ioption "s:replace/:$WP_TESTS_DIR/tests/:" $EXEC_DIR/tests/phpunit.xml
 
 }
@@ -97,7 +105,19 @@ install_code_sniffer() {
 	phpenv rehash
 }
 
+update_postmedia_test_config() {
+	# pull down the custom files required to support wordpress and the testing configs
+	cd $EXEC_DIR
+	git clone --quiet https://github.com/Postmedia-Digital/CI_Config.git /tmp/ci_config
+
+	# copy the codesniffer ruleset into the tests folder.
+	cp /tmp/ci_config/codesniffer.ruleset.xml $EXEC_DIR/tests/
+	
+}
+
+update_postmedia_test_config
 install_wp
 install_test_suite
 install_db
 install_code_sniffer
+
