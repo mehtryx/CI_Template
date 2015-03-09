@@ -5,12 +5,16 @@ Based off of the combined work from many wordpress developers and VIP coding
 
 Contributors: Keith Benedict <kbenedict@postmedia.com>, Michael Joseph <mjoseph@postmedia.com>
 
-Tested up to : 4.1
+Tested up to : 4.2-alpha
 
-Stable Tag: 1.0.0
+Stable Tag: 1.0.1
 
 Change Log
 ===========
+
+V 1.0.1 - March 9, 2015
+===========================
+* Updated repo with final changes for configuration module.
 
 V 1.0.0 - January 15, 2015
 ===========================
