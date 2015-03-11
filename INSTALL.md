@@ -57,6 +57,8 @@ Local execution can be done on *nix based systems only.  In order to do this you
 
 You will need to provide the proper username/password and server information for the database, executing the script without any parameters provides the usage information.
 
+*WARNING* Execution of the test will delete the database specified, it will not prompt you, do not specify an existing database.
+
 Once the Installation is complete you can execute the tests
 
 	$> phpunit -c tests/phpunit.xml
