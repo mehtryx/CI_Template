@@ -7,10 +7,17 @@ Contributors: Keith Benedict <kbenedict@postmedia.com>, Michael Joseph <mjoseph@
 
 Tested up to : 4.2-alpha
 
-Stable Tag: 1.0.1
+Stable Tag: 1.0.2
 
 Change Log
 ===========
+
+V 1.0.2 - March 11, 2015
+===========================
+* Codesniffer ruleset is now in CI_Config, removed from this repo
+* WP_Version is now in CI_Config, defining the value for latest
+* Added subroutine to remove files and reset to default the paramters before executing install
+* Drop database prior to creation (if exists) and added warning to readme that this command drops specified db
 
 V 1.0.1 - March 9, 2015
 ===========================

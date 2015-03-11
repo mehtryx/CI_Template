@@ -11,6 +11,7 @@ DB_PASS=$3
 DB_HOST=${4-localhost}
 WP_VERSION=${5-latest}
 
+
 WP_TESTS_DIR=${WP_TESTS_DIR-/tmp/wordpress-tests-lib}
 WP_CORE_DIR=/tmp/wordpress/
 EXEC_DIR="$(pwd)"
@@ -20,14 +21,9 @@ set -ex
 install_wp() {
 	mkdir -p $WP_CORE_DIR
 
-	# Needs to use svn trunk for latest, otherwise grab tar for specific version
-	if [ $WP_VERSION == 'latest' ]; then 
-		svn co --quiet https://core.svn.wordpress.org/trunk/ $WP_CORE_DIR
-	else
-		local ARCHIVE_NAME="wordpress-$WP_VERSION"
-		wget -nv -O /tmp/wordpress.tar.gz http://wordpress.org/${ARCHIVE_NAME}.tar.gz
-		tar --strip-components=1 -zxmf /tmp/wordpress.tar.gz -C $WP_CORE_DIR
-	fi
+	local ARCHIVE_NAME="wordpress-$WP_VERSION"
+	wget -nv -O /tmp/wordpress.tar.gz http://wordpress.org/${ARCHIVE_NAME}.tar.gz
+	tar --strip-components=1 -zxmf /tmp/wordpress.tar.gz -C $WP_CORE_DIR
 
 	cp /tmp/ci_config/db.php $WP_CORE_DIR/wp-content/db.php 
 }
@@ -43,11 +39,11 @@ install_test_suite() {
 	# set up testing suite
 	mkdir -p $WP_TESTS_DIR
 	cd $WP_TESTS_DIR
-	svn co --quiet http://develop.svn.wordpress.org/trunk/tests/phpunit/includes/
-	svn co --quiet http://develop.svn.wordpress.org/trunk/tests/phpunit/tests/
-	svn co --quiet http://develop.svn.wordpress.org/trunk/tests/phpunit/data/
+	svn co --quiet http://develop.svn.wordpress.org/tags/${WP_VERSION}/tests/phpunit/includes/
+	svn co --quiet http://develop.svn.wordpress.org/tags/${WP_VERSION}/tests/phpunit/tests/
+	svn co --quiet http://develop.svn.wordpress.org/tags/${WP_VERSION}/tests/phpunit/data/
 
-	wget -nv -O wp-tests-config.php http://develop.svn.wordpress.org/trunk/wp-tests-config-sample.php
+	wget -nv -O wp-tests-config.php http://develop.svn.wordpress.org/tags/${WP_VERSION}/wp-tests-config-sample.php
 	sed $ioption "s:dirname( __FILE__ ) . '/src/':'$WP_CORE_DIR':" wp-tests-config.php
 	sed $ioption "s/youremptytestdbnamehere/$DB_NAME/" wp-tests-config.php
 	sed $ioption "s/yourusernamehere/$DB_USER/" wp-tests-config.php
@@ -82,6 +78,10 @@ install_db() {
 		fi
 	fi
 
+	# drop database if it exists (-f forces so no prompt to confirm, and ignores error if db didnt exist)
+	#mysqladmin drop $DB_NAME --user="$DB_USER" --password="$DB_PASS"$EXTRA -f
+	mysql -u "$DB_USER" -p"$DB_PASS" -e "drop database if exists $DB_NAME"$EXTRA
+
 	# create database
 	mysqladmin create $DB_NAME --user="$DB_USER" --password="$DB_PASS"$EXTRA
 }
@@ -113,8 +113,23 @@ update_postmedia_test_config() {
 	# copy the codesniffer ruleset into the tests folder.
 	cp /tmp/ci_config/codesniffer.ruleset.xml $EXEC_DIR/tests/
 	
+	if [ $WP_VERSION == 'latest' ]; then 
+		#allows us to set the standard on latest from the CI_Config repo
+		#this was needed because trunk is the nightly build, no easy way to id latest stable
+		WP_VERSION="$(/tmp/CI_Config/wordpress_latest.sh)"
+	fi
 }
 
+remove_previous_temp_files() {
+	# this function removes and reverts files before the installations, no errors are passed on if they don't exist
+	rm -rf /tmp/wordpress*
+	rm -rf /tmp/ci_config
+	rm -rf /tmp/php-codesniffer
+	git co $EXEC_DIR/tests/phpunit.xml
+	rm -f $EXEC_DIR/tests/phpunit.xml.bak
+}
+
+remove_previous_temp_files
 update_postmedia_test_config
 install_wp
 install_test_suite
