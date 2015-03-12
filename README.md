@@ -12,6 +12,12 @@ Stable Tag: 1.0.2
 Change Log
 ===========
 
+V 1.0.3 - March 12, 2015
+===========================
+* Bug fix, used alias for git checkout, removed to use full command
+* wp_version check, path had incorrect case
+* changed parameter for the mysql password to --password from -p
+
 V 1.0.2 - March 11, 2015
 ===========================
 * Codesniffer ruleset is now in CI_Config, removed from this repo
