@@ -80,7 +80,7 @@ install_db() {
 
 	# drop database if it exists (-f forces so no prompt to confirm, and ignores error if db didnt exist)
 	#mysqladmin drop $DB_NAME --user="$DB_USER" --password="$DB_PASS"$EXTRA -f
-	mysql -u "$DB_USER" -p"$DB_PASS" -e "drop database if exists $DB_NAME"$EXTRA
+	mysql -u "$DB_USER" --password="$DB_PASS" -e "drop database if exists $DB_NAME"$EXTRA
 
 	# create database
 	mysqladmin create $DB_NAME --user="$DB_USER" --password="$DB_PASS"$EXTRA
@@ -116,7 +116,7 @@ update_postmedia_test_config() {
 	if [ $WP_VERSION == 'latest' ]; then 
 		#allows us to set the standard on latest from the CI_Config repo
 		#this was needed because trunk is the nightly build, no easy way to id latest stable
-		WP_VERSION="$(/tmp/CI_Config/wordpress_latest.sh)"
+		WP_VERSION="$(/tmp/ci_config/wordpress_latest.sh)"
 	fi
 }
 
@@ -125,7 +125,7 @@ remove_previous_temp_files() {
 	rm -rf /tmp/wordpress*
 	rm -rf /tmp/ci_config
 	rm -rf /tmp/php-codesniffer
-	git co $EXEC_DIR/tests/phpunit.xml
+	git checkout $EXEC_DIR/tests/phpunit.xml
 	rm -f $EXEC_DIR/tests/phpunit.xml.bak
 }
 
