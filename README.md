@@ -3,7 +3,7 @@ CI for WordPress Plugins and Themes
 Continuous Integration Template - Designed for use with Travis-ci or executed on a *nix based OS.
 Based off of the combined work from many wordpress developers and VIP coding
 
-Contributors: Keith Benedict <kbenedict@postmedia.com>, Michael Joseph <mjoseph@postmedia.com>
+Contributors: Mehtryx, Dexter Saintjoc
 
 Tested up to : 4.2-alpha
 
